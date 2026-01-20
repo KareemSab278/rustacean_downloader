@@ -32,3 +32,6 @@ async fn main() {
         Err(e) => eprintln!("Download failed: {}", e),
     }
 }
+
+
+// found bugs but got work tomorrow. spent an hour fixing compiliing bugs and god damh windows forcingme to download visual studuio as usual. cringe microslop.
