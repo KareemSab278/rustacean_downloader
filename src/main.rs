@@ -14,10 +14,21 @@ async fn main() {
     // reading the axum docs for this part
     let app = Router::new().route(
         "/",
-        get(|| async { "Hello, World!" })
+        get(|| async { "root works" })
     );
 
-    // run our app with hyper, listening globally on port 3000
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    axum::serve(listener, app).await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await?; // curl http://localhost:3000/
+    axum::serve(listener, app).await?; // using chaining gives the error automatically and is safe.
+
+    // Use ? for error propagation in functions that return Result.
+
+    match
+        download_methods::download(
+            String::from("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
+            download_methods::DownloadMethod::Audio
+        ).await
+    {
+        Ok(_) => println!("Download succeeded"),
+        Err(e) => eprintln!("Download failed: {}", e),
+    }
 }
