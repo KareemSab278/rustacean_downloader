@@ -8,6 +8,8 @@ use axum::{ routing::get, Router };
 // payload something like {url: "some url", method: "video" or "audio"} simple json
 // will probably use Axum
 
+// note form work before i start: i think i forgot to import DownloadMethod enum to use here. most likely do download_methods::DownloadMethod
+
 #[tokio::main]
 async fn main() {
     // build our application with a single route
