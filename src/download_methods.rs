@@ -6,8 +6,11 @@ use std::process::Command;
 fn download_with_yt_dlp(url: &str, output_dir: &str) {
     let status = Command::new("libs/yt-dlp.exe")
         .args([
-            "-f", "bestvideo+bestaudio",
+            "-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4",
             "--merge-output-format", "mp4",
+            "--ffmpeg-location", "libs/ffmpeg.exe",
+            "--recode-video", "mp4",
+            "--postprocessor-args", "ffmpeg:-c:v libx264 -c:a aac",
             "-o", &format!("{}/%(title)s.mp4", output_dir),
             url,
         ])
