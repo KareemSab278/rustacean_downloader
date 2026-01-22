@@ -1,7 +1,20 @@
-
 use yt_dlp::Youtube;
 use std::path::PathBuf;
 use yt_dlp::client::deps::Libraries;
+use std::process::Command;
+
+fn download_with_yt_dlp(url: &str, output_dir: &str) {
+    let status = Command::new("libs/yt-dlp.exe")
+        .args([
+            "-f", "bestvideo+bestaudio",
+            "--merge-output-format", "mp4",
+            "-o", &format!("{}/%(title)s.mp4", output_dir),
+            url,
+        ])
+        .status()
+        .expect("failed to execute yt-dlp");
+    println!("yt-dlp exited with: {:?}", status);
+}
 
 pub enum DownloadMethod { // you must set it as public to use outside of this file in main for example
     Video,
@@ -18,11 +31,15 @@ pub async fn download(url: String, method: DownloadMethod) -> Result<(), Box<dyn
     let ffmpeg = libraries_dir.join("ffmpeg");
 
     let libraries = Libraries::new(youtube, ffmpeg);
-    let fetcher = Youtube::new(libraries, output_dir).await?;
+    let fetcher = Youtube::new(libraries, output_dir.clone()).await?;
 
     match method {
-        DownloadMethod::Video => fetcher.download_video_stream_from_url(String::from(url), "video.mp4").await?,
-        DownloadMethod::Audio => fetcher.download_audio_stream_from_url(String::from(url), "audio.m4a").await?,
+        DownloadMethod::Video => {
+            download_with_yt_dlp(&url, output_dir.to_str().unwrap());
+        }
+        DownloadMethod::Audio => {
+            fetcher.download_audio_stream_from_url(url, "audio.m4a").await?;
+        }
     };
 
     Ok(())
