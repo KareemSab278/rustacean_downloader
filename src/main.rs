@@ -8,7 +8,6 @@ struct DownloadParams {
     method: String,
 }
 
-
 // curl -X POST "http://localhost:3000/download?url=https://youtu.be/ThjvMReOXYM?si=zIzcoEut3NU0MpMd&method=video" // linux
 // Invoke-WebRequest -Uri "http://localhost:3000/download?url=https://www.youtube.com/watch?v=M4TufsFlv_o&method=audio" -Method POST
 

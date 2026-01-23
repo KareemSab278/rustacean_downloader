@@ -1,31 +1,48 @@
 use yt_dlp::Youtube;
 use std::path::PathBuf;
 use yt_dlp::client::deps::Libraries;
-use std::process::Command;
 
-fn download_with_yt_dlp(url: &str, output_dir: &str) {
-    let status = Command::new("libs/yt-dlp.exe")
-        .args([
-            "-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4",
-            "--merge-output-format", "mp4",
-            "--ffmpeg-location", "libs/ffmpeg.exe",
-            "--recode-video", "mp4",
-            "--postprocessor-args", "ffmpeg:-c:v libx264 -c:a aac",
-            "-o", &format!("{}/%(title)s.mp4", output_dir),
-            url,
-        ])
-        .status()
-        .expect("failed to execute yt-dlp");
-    println!("yt-dlp exited with: {:?}", status);
+// the ? operator cannot be applied to type () means the type is a function that returns nothing like void in other languages. needs to return a Result type!!!
+// you can avoid this error by adding a return type to the function signature that matches the expected type,
+// such as Result<(), Box<dyn std::error::Error>> for functions that may return an error but do not return any meaningful value on success. or even Ok(())
+async fn download_with_yt_dlp(url: &str, output_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let libraries_dir = PathBuf::from("libs");
+    let output_dir = PathBuf::from("output");
+
+    let youtube = libraries_dir.join("yt-dlp");
+    let ffmpeg = libraries_dir.join("ffmpeg");
+
+    let libraries = Libraries::new(youtube, ffmpeg);
+    let fetcher = Youtube::new(libraries, output_dir).await?;
+
+    let video = fetcher.fetch_video_infos(url.to_string()).await?;
+
+    let audio_format = video.best_audio_format().unwrap();
+    let _audio_path = fetcher.download_format(&audio_format, "audio-stream.mp3").await?;
+
+    let video_format = video.worst_video_format().unwrap();
+    let _video_path = fetcher.download_format(&video_format, "video-stream.mp4").await?;
+
+    let output_path = fetcher
+        .combine_audio_and_video(
+            "audio-stream.mp3",
+            "video-stream.mp4",
+            &format!("{}/%(title)s.mp4", output_path)
+        ).await?;
+    println!("Downloaded video to {:?}", output_path);
+    Ok(()) // always end fn with Ok(()) if returning Result type like when using ? (try) operator
+    // ? ok op returns the error and exits the function if there is an error!
 }
 
-pub enum DownloadMethod { // you must set it as public to use outside of this file in main for example
+pub enum DownloadMethod {
     Video,
     Audio,
 }
 
-// #[tokio::main] // putting this above anything turns it into the main async function for the runtime.
-pub async fn download(url: String, method: DownloadMethod) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn download(
+    url: String,
+    method: DownloadMethod
+) -> Result<(), Box<dyn std::error::Error>> {
     let libraries_dir = PathBuf::from("libs");
     let output_dir = PathBuf::from("output");
     std::fs::create_dir_all(&output_dir)?;
@@ -38,12 +55,11 @@ pub async fn download(url: String, method: DownloadMethod) -> Result<(), Box<dyn
 
     match method {
         DownloadMethod::Video => {
-            download_with_yt_dlp(&url, output_dir.to_str().unwrap());
+            download_with_yt_dlp(&url, output_dir.to_str().unwrap()).await?;
         }
         DownloadMethod::Audio => {
             fetcher.download_audio_stream_from_url(url, "audio.m4a").await?;
         }
-    };
-
+    }
     Ok(())
 }
