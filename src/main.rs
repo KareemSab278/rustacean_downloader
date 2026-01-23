@@ -9,7 +9,7 @@ struct DownloadParams {
 }
 
 // curl -X POST "http://localhost:3000/download?url=https://youtu.be/ThjvMReOXYM?si=zIzcoEut3NU0MpMd&method=video" // linux
-// Invoke-WebRequest -Uri "http://localhost:3000/download?url=https://www.youtube.com/watch?v=M4TufsFlv_o&method=audio" -Method POST
+// Invoke-WebRequest -Uri "http://localhost:3000/download?url=https://www.youtube.com/watch?v=ZnfUeVeMKjY&method=audio" -Method POST
 
 async fn download_handler(Query(params): Query<DownloadParams>) {
     // get params directly
