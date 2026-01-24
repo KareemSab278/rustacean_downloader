@@ -22,11 +22,14 @@
             return;
         }
         try {
+
+            console.log('Sending download request for', url, 'as', downloadType);
             const response = await fetch('http://localhost:3000/download', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url, downloadType })
+                body: JSON.stringify({ url, method: downloadType })
             });
+            console.log('Received response', response);
             if (!response.ok) throw new Error('Network error');
             const data = await response.json();
             if (data.direct_url) {
