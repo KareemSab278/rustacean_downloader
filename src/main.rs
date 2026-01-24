@@ -1,6 +1,7 @@
 mod download_methods;
-use axum::{ extract::Query, routing::{ get, post }, Router };
+use axum::{ extract::Query, http::Method,  routing::{ get, post }, Router };
 use serde::Deserialize;
+use tower_http::cors::{ CorsLayer, Any };
 
 #[derive(Deserialize)]
 struct DownloadParams {
@@ -33,12 +34,15 @@ async fn download_handler(Query(params): Query<DownloadParams>) {
 
 #[tokio::main]
 async fn main() {
+    // let cors_layer = CorsLayer::new().allow_origin(Any).allow_methods([Method::GET, Method::POST]);
+
     let app = Router::new()
         .route(
             "/",
             get(|| async { "root works" })
         )
-        .route("/download", post(download_handler));
+        .route("/download", post(download_handler))
+        .layer(CorsLayer::new().allow_origin(Any).allow_methods([Method::GET, Method::POST]));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();

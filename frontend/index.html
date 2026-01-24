@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Video Downloader</title>
+</head>
+
+<body>
+    <input type="checkbox" id="audioOnly" /> Audio Only
+    <br />
+    <input type="text" id="videoUrl" placeholder="Enter video URL" />
+    <button id="downloadBtn">Download Video</button>
+</body>
+<script>
+
+    document.getElementById('downloadBtn').onclick = async function () {
+        const url = document.getElementById('videoUrl').value;
+        const downloadType = document.getElementById('audioOnly').checked ? 'audio' : 'video';
+        if (!url) {
+            alert('Please enter a video URL.');
+            return;
+        }
+        try {
+            const response = await fetch('http://localhost:3000/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url, downloadType })
+            });
+            if (!response.ok) throw new Error('Network error');
+            const data = await response.json();
+            if (data.direct_url) {
+                const a = document.createElement('a');
+                a.href = data.direct_url;
+                a.download = data.title || 'video.mp4';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } else {
+                alert('Download link not found.');
+            }
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    };
+</script>
+
+</html>
